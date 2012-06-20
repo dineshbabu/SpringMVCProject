@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/mvc"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+	<!-- DispatcherServlet Context: defines this servlet's request-processing infrastructure -->
+
+	<context:component-scan base-package="net.spring.login, net.spring.view" />
+	
+	<!-- Configures the @Controller programming model -->
+	<mvc:annotation-driven /> 
+	
+	<!-- Handles HTTP GET requests for /resources/** by efficiently serving up static resources in the ${webappRoot}/resources directory -->
+	<mvc:resources mapping="/resources/**" location="/resources/" />
+
+	<!-- Resolves views selected for rendering by @Controllers to .jsp resources in the /WEB-INF/views directory -->
+	<beans:bean class="org.springframework.web.servlet.view.InternalResourceViewResolver" >
+		<beans:property name="prefix" value="/WEB-INF/views/" />
+		<beans:property name="suffix" value=".jsp" />		
+	</beans:bean>
+	
+	<!-- Validator: This entry is a must for custom or default/inbuilt validator -->
+	<beans:bean id="validator"  class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean"/>
+	
+	<!-- Start Interceptor -->
+	
+	    <!-- START: USAGE ONE. The order property with value -1 is a must for this to work -->
+		    <!--<beans:bean id="handlerMapping" class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping">
+		        <beans:property name="interceptors">
+		            <beans:list>
+		                <beans:ref bean="weekEndInterceptor"/>
+		            </beans:list>
+		        </beans:property>
+		        <beans:property name="order" value="-1"></beans:property>
+		    </beans:bean>
+		
+		    <beans:bean id="weekEndInterceptor" class="net.spring.login.interceptor.WeekEndAccessInterceptor">
+		        <beans:property name="weekDay" value="1"/>
+		    </beans:bean> -->   	
+		    <!-- END: USAGE ONE -->
+		    
+		    <!-- START: USAGE TWO. -->	
+			<mvc:interceptors>
+				
+				<mvc:interceptor>
+					<mvc:mapping path="/login"/>
+					<beans:bean class="net.spring.login.interceptor.WeekEndAccessInterceptor"/>
+				</mvc:interceptor>
+				
+				<!-- <beans:bean class="net.spring.login.interceptor.WeekEndAccessInterceptor"/>  -->
+				
+				<mvc:interceptor>
+					<mvc:mapping path="/login"/>
+					<!-- LocaleChangeInterceptor will not work with AcceptHeaderLocaleResolver (ie, browser's accept-language header  ) . Hence used CookieLocaleResolver. See localeResolver bean definition below. -->
+					<beans:bean class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor">
+			    		<beans:property name="paramName" value="siteLanguage"/>
+					</beans:bean>
+				</mvc:interceptor>
+				
+				<mvc:interceptor>
+					<mvc:mapping path="/login"/>
+					<!-- ThemeChangeInterceptor will not work with FixedThemeResolver. Hence used CookieThemeResolver. See themeResolver bean definition below. -->
+					<beans:bean class="org.springframework.web.servlet.theme.ThemeChangeInterceptor">
+			    		<beans:property name="paramName" value="theme"/>
+					</beans:bean>
+				</mvc:interceptor>
+				
+			</mvc:interceptors>
+		<!-- END : USAGE TWO. -->
+	
+	<!-- End Interceptor -->
+	
+	<!-- Start Locale resolver -->
+    <beans:bean id="localeResolver" class="org.springframework.web.servlet.i18n.CookieLocaleResolver">
+    	<!-- <beans:property name="cookiePath" value="/login"></beans:property>  -->
+    	<beans:property name="cookieMaxAge" value="2000"></beans:property>
+    </beans:bean>
+    <!-- End Locale resolver -->
+    
+    <!-- Start: Theme. bean id must be the reserved word "themeResolver" -->
+    <beans:bean id="themeResolver" class="org.springframework.web.servlet.theme.CookieThemeResolver">
+    	<beans:property name="defaultThemeName" value="loginThemeName"></beans:property>
+    	<beans:property name="cookiePath" value="/login"></beans:property>
+    	<beans:property name="cookieMaxAge" value="2"></beans:property>    	
+    </beans:bean>    
+    <beans:bean id="themeSource" class="net.spring.login.theme.ThemeSourceImpl"/>
+    <!-- End: Theme -->
+    
+    <!-- Start: i18n -->
+	<beans:bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
+	    <beans:property name="basenames">
+	        <beans:list>
+	        	<beans:value>net.spring.login.controller.messages</beans:value><!-- For custom validation error code resolution -->
+	        	<beans:value>net.spring.login.controller.messages_es_ES</beans:value><!-- For custom validation error code resolution -->
+	      		<beans:value>net.spring.login.controller.loginLabels</beans:value>
+	      		<beans:value>net.spring.login.controller.loginLabels_es_ES</beans:value>
+	    	</beans:list>
+	  </beans:property>
+	</beans:bean>
+	<!-- End: i18n -->	  
+	
+	<!-- Start: custom property editor -->
+	<beans:bean  id="customEditor" class="org.springframework.beans.factory.config.CustomEditorConfigurer">
+	  	<beans:property name="customEditors">
+		    <beans:map>
+		      <beans:entry key="net.spring.view.controller.User" value="net.spring.view.propertyeditor.UserPropertyEditor"/>
+		    </beans:map>
+	  	</beans:property>
+	</beans:bean>
+	<!-- End: custom property editor -->
+	  
+</beans:beans>
